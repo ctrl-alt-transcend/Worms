@@ -1,0 +1,46 @@
+name: CI - Client (Game)
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x] # LTS Version
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm' # cache for faster dependence download
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Linting (Code Quality)
+      run: npm run lint # Assurez-vous d'avoir un script "lint" dans package.json
+
+    - name: Type Checking (TypeScript)
+      run: npm run type-check # Si vous utilisez tsc --noEmit
+
+    - name: Run Tests
+      run: npm test # Lance vos tests unitaires (Jest/Vitest)
+
+    - name: Build Project
+      run: npm run build # Vérifie que le jeu compile sans erreur (ex: Vite/Webpack)
+      
+    # Optionnel : Upload des artefacts de build pour déploiement futur
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: client-build
+        path: dist/ # Adaptez selon votre dossier de sortie (ex: build, public)
